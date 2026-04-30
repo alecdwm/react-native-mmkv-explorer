@@ -84,7 +84,7 @@ export function ValueViewer({ visible, entry, theme, onClose, onEdit }: ValueVie
               style={[styles.footerButton, { backgroundColor: theme.primary }]}
               onPress={onEdit}
             >
-              <Text style={[styles.footerButtonText, { color: '#fff' }]}>Edit</Text>
+              <Text style={[styles.footerButtonText, { color: theme.badgeText }]}>Edit</Text>
             </TouchableOpacity>
           </View>
         </View>

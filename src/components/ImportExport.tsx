@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
 import {
   Clipboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Share,
@@ -105,179 +107,202 @@ export function ImportExport({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <Pressable
-        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
-        onPress={handleClose}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View
-          style={[styles.sheet, { backgroundColor: theme.surface }]}
-          onStartShouldSetResponder={() => true}
+        <Pressable
+          style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+          onPress={handleClose}
         >
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: theme.text }]}>Import / Export</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <Text style={[styles.closeButton, { color: theme.textSecondary }]}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Tab bar */}
-          <View style={[styles.tabBar, { borderBottomColor: theme.border }]}>
-            {(['export', 'import'] as Tab[]).map((tab) => (
-              <TouchableOpacity
-                key={tab}
-                style={[styles.tab, activeTab === tab && { borderBottomColor: theme.primary }]}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text
-                  style={[
-                    styles.tabText,
-                    {
-                      color: activeTab === tab ? theme.primary : theme.textMuted,
-                    },
-                  ]}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </Text>
+          <View
+            style={[styles.sheet, { backgroundColor: theme.surface }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.header}>
+              <Text style={[styles.title, { color: theme.text }]}>Import / Export</Text>
+              <TouchableOpacity onPress={handleClose}>
+                <Text style={[styles.closeButton, { color: theme.textSecondary }]}>✕</Text>
               </TouchableOpacity>
-            ))}
-          </View>
+            </View>
 
-          <ScrollView style={styles.body}>
-            {activeTab === 'export' ? (
-              <View>
-                {!exportedJSON ? (
-                  <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: theme.primary }]}
-                    onPress={handleExport}
-                  >
-                    <Text style={styles.actionButtonText}>Export All Keys</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <>
-                    <ScrollView
-                      style={[
-                        styles.jsonPreview,
-                        { backgroundColor: theme.background, borderColor: theme.border },
-                      ]}
-                      nestedScrollEnabled
-                    >
-                      <Text style={[styles.jsonText, { color: theme.text }]} selectable>
-                        {exportedJSON}
-                      </Text>
-                    </ScrollView>
-                    <View style={styles.exportActions}>
-                      <TouchableOpacity
-                        style={[styles.actionButton, { borderColor: theme.border, borderWidth: 1 }]}
-                        onPress={handleCopyExport}
-                      >
-                        <Text style={[styles.actionButtonText, { color: theme.text }]}>Copy</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.actionButton, { borderColor: theme.border, borderWidth: 1 }]}
-                        onPress={handleShareExport}
-                      >
-                        <Text style={[styles.actionButtonText, { color: theme.text }]}>Share</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </>
-                )}
-              </View>
-            ) : (
-              <View>
-                <Text style={[styles.label, { color: theme.textSecondary }]}>Paste JSON</Text>
-                <TextInput
-                  style={[
-                    styles.importInput,
-                    {
-                      color: theme.text,
-                      borderColor: theme.border,
-                      backgroundColor: theme.background,
-                    },
-                  ]}
-                  value={importJSON}
-                  onChangeText={(text) => {
-                    setImportJSON(text);
-                    setPreview(null);
-                    setError(null);
-                  }}
-                  multiline
-                  numberOfLines={6}
-                  placeholder="Paste exported JSON here…"
-                  placeholderTextColor={theme.textMuted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-
-                <Text style={[styles.label, { color: theme.textSecondary }]}>Conflict Mode</Text>
-                {IMPORT_MODES.map(({ mode, label, description }) => (
-                  <TouchableOpacity
-                    key={mode}
+            {/* Tab bar */}
+            <View style={[styles.tabBar, { borderBottomColor: theme.border }]}>
+              {(['export', 'import'] as Tab[]).map((tab) => (
+                <TouchableOpacity
+                  key={tab}
+                  style={[styles.tab, activeTab === tab && { borderBottomColor: theme.primary }]}
+                  onPress={() => setActiveTab(tab)}
+                >
+                  <Text
                     style={[
-                      styles.modeOption,
+                      styles.tabText,
                       {
-                        borderColor: importMode === mode ? theme.primary : theme.border,
-                        backgroundColor:
-                          importMode === mode ? theme.surfaceHighlight : 'transparent',
+                        color: activeTab === tab ? theme.primary : theme.textMuted,
                       },
                     ]}
-                    onPress={() => {
-                      setImportMode(mode);
-                      setPreview(null);
-                    }}
                   >
-                    <Text style={[styles.modeLabel, { color: theme.text }]}>{label}</Text>
-                    <Text style={[styles.modeDesc, { color: theme.textMuted }]}>{description}</Text>
-                  </TouchableOpacity>
-                ))}
-
-                <TouchableOpacity
-                  style={[
-                    styles.actionButton,
-                    {
-                      backgroundColor: importJSON.trim() ? theme.primary : theme.textMuted,
-                    },
-                  ]}
-                  onPress={handlePreviewImport}
-                  disabled={!importJSON.trim()}
-                >
-                  <Text style={styles.actionButtonText}>Preview Import</Text>
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </Text>
                 </TouchableOpacity>
+              ))}
+            </View>
 
-                {preview && (
-                  <View
-                    style={[
-                      styles.previewBox,
-                      { backgroundColor: theme.background, borderColor: theme.border },
-                    ]}
-                  >
-                    <Text style={[styles.previewTitle, { color: theme.text }]}>Import Preview</Text>
-                    <Text style={[styles.previewLine, { color: theme.badgeString }]}>
-                      + {preview.newKeys.length} new keys
-                    </Text>
-                    <Text style={[styles.previewLine, { color: theme.badgeNumber }]}>
-                      ~ {preview.updatedKeys.length} updated keys
-                    </Text>
-                    <Text style={[styles.previewLine, { color: theme.textMuted }]}>
-                      = {preview.unchangedKeys.length} unchanged
-                    </Text>
+            <ScrollView style={styles.body}>
+              {activeTab === 'export' ? (
+                <View>
+                  {!exportedJSON ? (
                     <TouchableOpacity
-                      style={[
-                        styles.actionButton,
-                        { backgroundColor: theme.primary, marginTop: 12 },
-                      ]}
-                      onPress={handleApplyImport}
+                      style={[styles.actionButton, { backgroundColor: theme.primary }]}
+                      onPress={handleExport}
                     >
-                      <Text style={styles.actionButtonText}>Apply Import</Text>
+                      <Text style={[styles.actionButtonText, { color: theme.badgeText }]}>
+                        Export All Keys
+                      </Text>
                     </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            )}
+                  ) : (
+                    <>
+                      <ScrollView
+                        style={[
+                          styles.jsonPreview,
+                          { backgroundColor: theme.background, borderColor: theme.border },
+                        ]}
+                        nestedScrollEnabled
+                      >
+                        <Text style={[styles.jsonText, { color: theme.text }]} selectable>
+                          {exportedJSON}
+                        </Text>
+                      </ScrollView>
+                      <View style={styles.exportActions}>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionButton,
+                            { borderColor: theme.border, borderWidth: 1 },
+                          ]}
+                          onPress={handleCopyExport}
+                        >
+                          <Text style={[styles.actionButtonText, { color: theme.text }]}>Copy</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionButton,
+                            { borderColor: theme.border, borderWidth: 1 },
+                          ]}
+                          onPress={handleShareExport}
+                        >
+                          <Text style={[styles.actionButtonText, { color: theme.text }]}>
+                            Share
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
+                </View>
+              ) : (
+                <View>
+                  <Text style={[styles.label, { color: theme.textSecondary }]}>Paste JSON</Text>
+                  <TextInput
+                    style={[
+                      styles.importInput,
+                      {
+                        color: theme.text,
+                        borderColor: theme.border,
+                        backgroundColor: theme.background,
+                      },
+                    ]}
+                    value={importJSON}
+                    onChangeText={(text) => {
+                      setImportJSON(text);
+                      setPreview(null);
+                      setError(null);
+                    }}
+                    multiline
+                    numberOfLines={6}
+                    placeholder="Paste exported JSON here…"
+                    placeholderTextColor={theme.textMuted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
 
-            {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
-          </ScrollView>
-        </View>
-      </Pressable>
+                  <Text style={[styles.label, { color: theme.textSecondary }]}>Conflict Mode</Text>
+                  {IMPORT_MODES.map(({ mode, label, description }) => (
+                    <TouchableOpacity
+                      key={mode}
+                      style={[
+                        styles.modeOption,
+                        {
+                          borderColor: importMode === mode ? theme.primary : theme.border,
+                          backgroundColor:
+                            importMode === mode ? theme.surfaceHighlight : 'transparent',
+                        },
+                      ]}
+                      onPress={() => {
+                        setImportMode(mode);
+                        setPreview(null);
+                      }}
+                    >
+                      <Text style={[styles.modeLabel, { color: theme.text }]}>{label}</Text>
+                      <Text style={[styles.modeDesc, { color: theme.textMuted }]}>
+                        {description}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton,
+                      {
+                        backgroundColor: importJSON.trim() ? theme.primary : theme.textMuted,
+                      },
+                    ]}
+                    onPress={handlePreviewImport}
+                    disabled={!importJSON.trim()}
+                  >
+                    <Text style={[styles.actionButtonText, { color: theme.badgeText }]}>
+                      Preview Import
+                    </Text>
+                  </TouchableOpacity>
+
+                  {preview && (
+                    <View
+                      style={[
+                        styles.previewBox,
+                        { backgroundColor: theme.background, borderColor: theme.border },
+                      ]}
+                    >
+                      <Text style={[styles.previewTitle, { color: theme.text }]}>
+                        Import Preview
+                      </Text>
+                      <Text style={[styles.previewLine, { color: theme.badgeString }]}>
+                        + {preview.newKeys.length} new keys
+                      </Text>
+                      <Text style={[styles.previewLine, { color: theme.badgeNumber }]}>
+                        ~ {preview.updatedKeys.length} updated keys
+                      </Text>
+                      <Text style={[styles.previewLine, { color: theme.textMuted }]}>
+                        = {preview.unchangedKeys.length} unchanged
+                      </Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.actionButton,
+                          { backgroundColor: theme.primary, marginTop: 12 },
+                        ]}
+                        onPress={handleApplyImport}
+                      >
+                        <Text style={[styles.actionButtonText, { color: theme.badgeText }]}>
+                          Apply Import
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -362,7 +387,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   actionButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -51,63 +53,68 @@ export function ConfirmDialog({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleCancel}>
-      <Pressable
-        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
-        onPress={handleCancel}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View
-          style={[styles.dialog, { backgroundColor: theme.surface }]}
-          onStartShouldSetResponder={() => true}
+        <Pressable
+          style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+          onPress={handleCancel}
         >
-          <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-          <Text style={[styles.message, { color: theme.textSecondary }]}>{message}</Text>
-          {confirmTypeText && (
-            <View style={styles.typeConfirmContainer}>
-              <Text style={[styles.typePrompt, { color: theme.textMuted }]}>
-                Type "{confirmTypeText}" to confirm:
-              </Text>
-              <TextInput
+          <View
+            style={[styles.dialog, { backgroundColor: theme.surface }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+            <Text style={[styles.message, { color: theme.textSecondary }]}>{message}</Text>
+            {confirmTypeText && (
+              <View style={styles.typeConfirmContainer}>
+                <Text style={[styles.typePrompt, { color: theme.textMuted }]}>
+                  Type "{confirmTypeText}" to confirm:
+                </Text>
+                <TextInput
+                  style={[
+                    styles.typeInput,
+                    {
+                      color: theme.text,
+                      borderColor: theme.border,
+                      backgroundColor: theme.background,
+                    },
+                  ]}
+                  value={typedText}
+                  onChangeText={setTypedText}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+            )}
+            <View style={styles.buttons}>
+              <TouchableOpacity
+                style={[styles.button, { borderColor: theme.border }]}
+                onPress={handleCancel}
+              >
+                <Text style={[styles.buttonText, { color: theme.textSecondary }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
-                  styles.typeInput,
+                  styles.button,
                   {
-                    color: theme.text,
-                    borderColor: theme.border,
-                    backgroundColor: theme.background,
+                    backgroundColor: canConfirm
+                      ? destructive
+                        ? theme.danger
+                        : theme.primary
+                      : theme.textMuted,
                   },
                 ]}
-                value={typedText}
-                onChangeText={setTypedText}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+                onPress={handleConfirm}
+                disabled={!canConfirm}
+              >
+                <Text style={[styles.buttonText, { color: theme.badgeText }]}>{confirmLabel}</Text>
+              </TouchableOpacity>
             </View>
-          )}
-          <View style={styles.buttons}>
-            <TouchableOpacity
-              style={[styles.button, { borderColor: theme.border }]}
-              onPress={handleCancel}
-            >
-              <Text style={[styles.buttonText, { color: theme.textSecondary }]}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                {
-                  backgroundColor: canConfirm
-                    ? destructive
-                      ? theme.danger
-                      : theme.primary
-                    : theme.textMuted,
-                },
-              ]}
-              onPress={handleConfirm}
-              disabled={!canConfirm}
-            >
-              <Text style={[styles.buttonText, { color: '#fff' }]}>{confirmLabel}</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

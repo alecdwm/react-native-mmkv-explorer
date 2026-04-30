@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Switch,
@@ -84,145 +86,152 @@ export function JsonPropertyEditor({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <Pressable
-        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
-        onPress={onCancel}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View
-          style={[styles.editor, { backgroundColor: theme.surface }]}
-          onStartShouldSetResponder={() => true}
+        <Pressable
+          style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+          onPress={onCancel}
         >
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: theme.text }]}>Edit Property</Text>
-            <TouchableOpacity onPress={onCancel}>
-              <Text style={[styles.closeButton, { color: theme.textSecondary }]}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.body}>
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Property</Text>
-            <Text
-              style={[
-                styles.propertyName,
-                {
-                  color: theme.text,
-                  backgroundColor: theme.background,
-                  borderColor: theme.border,
-                },
-              ]}
-            >
-              {propertyKey}
-            </Text>
-
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Type</Text>
-            <View style={styles.typeRow}>
-              {PRIMITIVE_TYPES.map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  style={[
-                    styles.typeButton,
-                    {
-                      backgroundColor: type === t ? badgeColor(t) : theme.background,
-                      borderColor: type === t ? badgeColor(t) : theme.border,
-                    },
-                  ]}
-                  onPress={() => {
-                    setType(t);
-                    setError(null);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.typeButtonText,
-                      { color: type === t ? theme.badgeText : theme.text },
-                    ]}
-                  >
-                    {JSON_TYPE_LABELS[t as JsonDisplayType]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+          <View
+            style={[styles.editor, { backgroundColor: theme.surface }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.header}>
+              <Text style={[styles.title, { color: theme.text }]}>Edit Property</Text>
+              <TouchableOpacity onPress={onCancel}>
+                <Text style={[styles.closeButton, { color: theme.textSecondary }]}>✕</Text>
+              </TouchableOpacity>
             </View>
 
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Value</Text>
-            {type === 'null' ? (
-              <Text style={[styles.nullText, { color: theme.textMuted }]}>null</Text>
-            ) : type === 'boolean' ? (
-              <View style={styles.switchRow}>
-                <Text style={[styles.switchLabel, { color: theme.text }]}>
-                  {booleanValue ? 'true' : 'false'}
-                </Text>
-                <Switch
-                  value={booleanValue}
-                  onValueChange={setBooleanValue}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                />
+            <View style={styles.body}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Property</Text>
+              <Text
+                style={[
+                  styles.propertyName,
+                  {
+                    color: theme.text,
+                    backgroundColor: theme.background,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                {propertyKey}
+              </Text>
+
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Type</Text>
+              <View style={styles.typeRow}>
+                {PRIMITIVE_TYPES.map((t) => (
+                  <TouchableOpacity
+                    key={t}
+                    style={[
+                      styles.typeButton,
+                      {
+                        backgroundColor: type === t ? badgeColor(t) : theme.background,
+                        borderColor: type === t ? badgeColor(t) : theme.border,
+                      },
+                    ]}
+                    onPress={() => {
+                      setType(t);
+                      setError(null);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.typeButtonText,
+                        { color: type === t ? theme.badgeText : theme.text },
+                      ]}
+                    >
+                      {JSON_TYPE_LABELS[t as JsonDisplayType]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ) : type === 'number' ? (
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    color: theme.text,
-                    borderColor: theme.border,
-                    backgroundColor: theme.background,
-                  },
-                ]}
-                value={numberValue}
-                onChangeText={(v) => {
-                  setNumberValue(v);
-                  setError(null);
-                }}
-                keyboardType="numeric"
-                autoCapitalize="none"
-                autoCorrect={false}
-                spellCheck={false}
-                placeholderTextColor={theme.textMuted}
-                placeholder="0"
-              />
-            ) : (
-              <TextInput
-                style={[
-                  styles.valueInput,
-                  {
-                    color: theme.text,
-                    borderColor: theme.border,
-                    backgroundColor: theme.background,
-                  },
-                ]}
-                value={stringValue}
-                onChangeText={(v) => {
-                  setStringValue(v);
-                  setError(null);
-                }}
-                multiline
-                numberOfLines={3}
-                autoCapitalize="none"
-                autoCorrect={false}
-                spellCheck={false}
-                placeholderTextColor={theme.textMuted}
-                placeholder="value"
-              />
-            )}
 
-            {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
-          </View>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Value</Text>
+              {type === 'null' ? (
+                <Text style={[styles.nullText, { color: theme.textMuted }]}>null</Text>
+              ) : type === 'boolean' ? (
+                <View style={styles.switchRow}>
+                  <Text style={[styles.switchLabel, { color: theme.text }]}>
+                    {booleanValue ? 'true' : 'false'}
+                  </Text>
+                  <Switch
+                    value={booleanValue}
+                    onValueChange={setBooleanValue}
+                    trackColor={{ false: theme.border, true: theme.primary }}
+                  />
+                </View>
+              ) : type === 'number' ? (
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      color: theme.text,
+                      borderColor: theme.border,
+                      backgroundColor: theme.background,
+                    },
+                  ]}
+                  value={numberValue}
+                  onChangeText={(v) => {
+                    setNumberValue(v);
+                    setError(null);
+                  }}
+                  keyboardType="numeric"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  placeholderTextColor={theme.textMuted}
+                  placeholder="0"
+                />
+              ) : (
+                <TextInput
+                  style={[
+                    styles.valueInput,
+                    {
+                      color: theme.text,
+                      borderColor: theme.border,
+                      backgroundColor: theme.background,
+                    },
+                  ]}
+                  value={stringValue}
+                  onChangeText={(v) => {
+                    setStringValue(v);
+                    setError(null);
+                  }}
+                  multiline
+                  numberOfLines={3}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  placeholderTextColor={theme.textMuted}
+                  placeholder="value"
+                />
+              )}
 
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={[styles.footerButton, { borderColor: theme.border }]}
-              onPress={onCancel}
-            >
-              <Text style={[styles.footerButtonText, { color: theme.textSecondary }]}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.footerButton, { backgroundColor: theme.primary }]}
-              onPress={handleSave}
-            >
-              <Text style={[styles.footerButtonText, { color: '#fff' }]}>Save</Text>
-            </TouchableOpacity>
+              {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
+            </View>
+
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={[styles.footerButton, { borderColor: theme.border }]}
+                onPress={onCancel}
+              >
+                <Text style={[styles.footerButtonText, { color: theme.textSecondary }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.footerButton, { backgroundColor: theme.primary }]}
+                onPress={handleSave}
+              >
+                <Text style={[styles.footerButtonText, { color: theme.badgeText }]}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

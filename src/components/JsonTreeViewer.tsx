@@ -274,7 +274,7 @@ export function JsonTreeViewer({
               style={[styles.footerButton, { backgroundColor: theme.primary }]}
               onPress={handleEdit}
             >
-              <Text style={[styles.footerButtonText, { color: '#fff' }]}>Edit</Text>
+              <Text style={[styles.footerButtonText, { color: theme.badgeText }]}>Edit</Text>
             </TouchableOpacity>
           </View>
         </View>

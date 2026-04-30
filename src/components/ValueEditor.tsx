@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -107,147 +109,155 @@ export function ValueEditor({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <Pressable
-        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
-        onPress={onCancel}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View
-          style={[styles.editor, { backgroundColor: theme.surface }]}
-          onStartShouldSetResponder={() => true}
+        <Pressable
+          style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+          onPress={onCancel}
         >
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: theme.text }]}>
-              {isNewKey ? 'Add Key' : 'Edit Key'}
-            </Text>
-            <TouchableOpacity onPress={onCancel}>
-              <Text style={[styles.closeButton, { color: theme.textSecondary }]}>✕</Text>
-            </TouchableOpacity>
-          </View>
+          <View
+            style={[styles.editor, { backgroundColor: theme.surface }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.header}>
+              <Text style={[styles.title, { color: theme.text }]}>
+                {isNewKey ? 'Add Key' : 'Edit Key'}
+              </Text>
+              <TouchableOpacity onPress={onCancel}>
+                <Text style={[styles.closeButton, { color: theme.textSecondary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView style={styles.body}>
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Key</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  color: theme.text,
-                  borderColor: theme.border,
-                  backgroundColor: theme.background,
-                },
-              ]}
-              value={key}
-              onChangeText={setKey}
-              editable={isNewKey}
-              autoCapitalize="none"
-              autoCorrect={false}
-              spellCheck={false}
-              placeholder="key.name"
-              placeholderTextColor={theme.textMuted}
-            />
-
-            {!isJsonMode && (
-              <>
-                <Text style={[styles.label, { color: theme.textSecondary }]}>Type</Text>
-                <View style={styles.typeRow}>
-                  {VALUE_TYPES.map((t) => (
-                    <TouchableOpacity
-                      key={t}
-                      style={[
-                        styles.typeButton,
-                        {
-                          backgroundColor: type === t ? getBadgeColor(t, theme) : theme.background,
-                          borderColor: type === t ? getBadgeColor(t, theme) : theme.border,
-                        },
-                      ]}
-                      onPress={() => {
-                        setType(t);
-                        if (t === 'boolean' && value !== 'true' && value !== 'false') {
-                          setValue('false');
-                        }
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.typeButtonText,
-                          {
-                            color: type === t ? theme.badgeText : theme.text,
-                          },
-                        ]}
-                      >
-                        {TYPE_LABELS[t]}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            )}
-
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Value</Text>
-            {type === 'boolean' ? (
-              <View style={styles.switchRow}>
-                <Text style={[styles.switchLabel, { color: theme.text }]}>
-                  {value === 'true' ? 'true' : 'false'}
-                </Text>
-                <Switch
-                  value={value === 'true'}
-                  onValueChange={(v) => setValue(v ? 'true' : 'false')}
-                  trackColor={{ false: theme.border, true: theme.primary }}
-                />
-              </View>
-            ) : (
+            <ScrollView style={styles.body}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Key</Text>
               <TextInput
                 style={[
-                  styles.valueInput,
+                  styles.input,
                   {
                     color: theme.text,
                     borderColor: theme.border,
                     backgroundColor: theme.background,
                   },
-                  isJsonMode && styles.jsonValueInput,
                 ]}
-                value={value}
-                onChangeText={(v) => {
-                  setValue(v);
-                  setError(null);
-                }}
-                multiline={isJsonMode || type === 'string' || type === 'binary'}
-                numberOfLines={isJsonMode ? 12 : type === 'string' || type === 'binary' ? 4 : 1}
+                value={key}
+                onChangeText={setKey}
+                editable={isNewKey}
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
-                keyboardType={type === 'number' ? 'numeric' : 'default'}
-                placeholder={
-                  isJsonMode
-                    ? '{\n  "key": "value"\n}'
-                    : type === 'number'
-                      ? '0'
-                      : type === 'binary'
-                        ? 'base64 encoded…'
-                        : 'value'
-                }
+                placeholder="key.name"
                 placeholderTextColor={theme.textMuted}
               />
-            )}
 
-            {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
-          </ScrollView>
+              {!isJsonMode && (
+                <>
+                  <Text style={[styles.label, { color: theme.textSecondary }]}>Type</Text>
+                  <View style={styles.typeRow}>
+                    {VALUE_TYPES.map((t) => (
+                      <TouchableOpacity
+                        key={t}
+                        style={[
+                          styles.typeButton,
+                          {
+                            backgroundColor:
+                              type === t ? getBadgeColor(t, theme) : theme.background,
+                            borderColor: type === t ? getBadgeColor(t, theme) : theme.border,
+                          },
+                        ]}
+                        onPress={() => {
+                          setType(t);
+                          if (t === 'boolean' && value !== 'true' && value !== 'false') {
+                            setValue('false');
+                          }
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.typeButtonText,
+                            {
+                              color: type === t ? theme.badgeText : theme.text,
+                            },
+                          ]}
+                        >
+                          {TYPE_LABELS[t]}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
 
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={[styles.footerButton, { borderColor: theme.border }]}
-              onPress={onCancel}
-            >
-              <Text style={[styles.footerButtonText, { color: theme.textSecondary }]}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.footerButton, { backgroundColor: theme.primary }]}
-              onPress={handleSave}
-            >
-              <Text style={[styles.footerButtonText, { color: '#fff' }]}>Save</Text>
-            </TouchableOpacity>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Value</Text>
+              {type === 'boolean' ? (
+                <View style={styles.switchRow}>
+                  <Text style={[styles.switchLabel, { color: theme.text }]}>
+                    {value === 'true' ? 'true' : 'false'}
+                  </Text>
+                  <Switch
+                    value={value === 'true'}
+                    onValueChange={(v) => setValue(v ? 'true' : 'false')}
+                    trackColor={{ false: theme.border, true: theme.primary }}
+                  />
+                </View>
+              ) : (
+                <TextInput
+                  style={[
+                    styles.valueInput,
+                    {
+                      color: theme.text,
+                      borderColor: theme.border,
+                      backgroundColor: theme.background,
+                    },
+                    isJsonMode && styles.jsonValueInput,
+                  ]}
+                  value={value}
+                  onChangeText={(v) => {
+                    setValue(v);
+                    setError(null);
+                  }}
+                  multiline={isJsonMode || type === 'string' || type === 'binary'}
+                  numberOfLines={isJsonMode ? 12 : type === 'string' || type === 'binary' ? 4 : 1}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  keyboardType={type === 'number' ? 'numeric' : 'default'}
+                  placeholder={
+                    isJsonMode
+                      ? '{\n  "key": "value"\n}'
+                      : type === 'number'
+                        ? '0'
+                        : type === 'binary'
+                          ? 'base64 encoded…'
+                          : 'value'
+                  }
+                  placeholderTextColor={theme.textMuted}
+                />
+              )}
+
+              {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
+            </ScrollView>
+
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={[styles.footerButton, { borderColor: theme.border }]}
+                onPress={onCancel}
+              >
+                <Text style={[styles.footerButtonText, { color: theme.textSecondary }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.footerButton, { backgroundColor: theme.primary }]}
+                onPress={handleSave}
+              >
+                <Text style={[styles.footerButtonText, { color: theme.badgeText }]}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

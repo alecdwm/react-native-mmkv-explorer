@@ -1,6 +1,7 @@
 import {
   Clipboard,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,9 +31,15 @@ export function ValueViewer({ visible, entry, theme, onClose, onEdit }: ValueVie
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}>
-        <View style={[styles.viewer, { backgroundColor: theme.surface }]}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable
+        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+        onPress={onClose}
+      >
+        <View
+          style={[styles.viewer, { backgroundColor: theme.surface }]}
+          onStartShouldSetResponder={() => true}
+        >
           <View style={styles.header}>
             <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
               {entry.key}
@@ -71,17 +78,17 @@ export function ValueViewer({ visible, entry, theme, onClose, onEdit }: ValueVie
               style={[styles.footerButton, { borderColor: theme.border }]}
               onPress={handleCopy}
             >
-              <Text style={[styles.footerButtonText, { color: theme.text }]}>📋 Copy</Text>
+              <Text style={[styles.footerButtonText, { color: theme.text }]}>Copy</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.footerButton, { backgroundColor: theme.primary }]}
               onPress={onEdit}
             >
-              <Text style={[styles.footerButtonText, { color: '#fff' }]}>✏️ Edit</Text>
+              <Text style={[styles.footerButtonText, { color: '#fff' }]}>Edit</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

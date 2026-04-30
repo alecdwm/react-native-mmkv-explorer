@@ -36,7 +36,7 @@ export function InstancePicker({ instances, activeIndex, onSelect, theme }: Inst
               style={[
                 styles.tabText,
                 {
-                  color: isActive ? '#fff' : theme.textSecondary,
+                  color: isActive ? theme.badgeText : theme.textSecondary,
                   fontWeight: isActive ? '700' : '500',
                 },
               ]}

@@ -170,17 +170,13 @@ export function ImportExport({
                         style={[styles.actionButton, { borderColor: theme.border, borderWidth: 1 }]}
                         onPress={handleCopyExport}
                       >
-                        <Text style={[styles.actionButtonText, { color: theme.text }]}>
-                          📋 Copy
-                        </Text>
+                        <Text style={[styles.actionButtonText, { color: theme.text }]}>Copy</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.actionButton, { borderColor: theme.border, borderWidth: 1 }]}
                         onPress={handleShareExport}
                       >
-                        <Text style={[styles.actionButtonText, { color: theme.text }]}>
-                          🔗 Share
-                        </Text>
+                        <Text style={[styles.actionButtonText, { color: theme.text }]}>Share</Text>
                       </TouchableOpacity>
                     </View>
                   </>

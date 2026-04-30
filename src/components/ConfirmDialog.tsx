@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import type { ThemeColors } from '../types';
 
 interface ConfirmDialogProps {
@@ -43,8 +51,14 @@ export function ConfirmDialog({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleCancel}>
-      <View style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}>
-        <View style={[styles.dialog, { backgroundColor: theme.surface }]}>
+      <Pressable
+        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+        onPress={handleCancel}
+      >
+        <View
+          style={[styles.dialog, { backgroundColor: theme.surface }]}
+          onStartShouldSetResponder={() => true}
+        >
           <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
           <Text style={[styles.message, { color: theme.textSecondary }]}>{message}</Text>
           {confirmTypeText && (
@@ -93,7 +107,7 @@ export function ConfirmDialog({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

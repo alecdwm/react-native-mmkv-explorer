@@ -38,7 +38,6 @@ export function SearchBar({
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-      <Text style={[styles.icon, { color: theme.textMuted }]}>🔍</Text>
       <TextInput
         style={[styles.input, { color: theme.text }]}
         value={localValue}
@@ -68,10 +67,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginVertical: 8,
     height: 40,
-  },
-  icon: {
-    fontSize: 14,
-    marginRight: 8,
   },
   input: {
     flex: 1,

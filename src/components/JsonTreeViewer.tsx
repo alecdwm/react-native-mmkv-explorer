@@ -3,6 +3,7 @@ import {
   Clipboard,
   FlatList,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -142,9 +143,15 @@ export function JsonTreeViewer({
   const primitiveDisplay = !isContainer && currentNode !== undefined;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}>
-        <View style={[styles.viewer, { backgroundColor: theme.surface }]}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
+      <Pressable
+        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+        onPress={handleClose}
+      >
+        <View
+          style={[styles.viewer, { backgroundColor: theme.surface }]}
+          onStartShouldSetResponder={() => true}
+        >
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -234,17 +241,17 @@ export function JsonTreeViewer({
               style={[styles.footerButton, { borderColor: theme.border }]}
               onPress={handleCopy}
             >
-              <Text style={[styles.footerButtonText, { color: theme.text }]}>📋 Copy</Text>
+              <Text style={[styles.footerButtonText, { color: theme.text }]}>Copy</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.footerButton, { backgroundColor: theme.primary }]}
               onPress={handleEdit}
             >
-              <Text style={[styles.footerButtonText, { color: '#fff' }]}>✏️ Edit</Text>
+              <Text style={[styles.footerButtonText, { color: '#fff' }]}>Edit</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

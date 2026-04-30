@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Switch,
@@ -77,9 +78,15 @@ export function ValueEditor({
   }, [key, type, value, validate, onSave]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
-      <View style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}>
-        <View style={[styles.editor, { backgroundColor: theme.surface }]}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+      <Pressable
+        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+        onPress={onCancel}
+      >
+        <View
+          style={[styles.editor, { backgroundColor: theme.surface }]}
+          onStartShouldSetResponder={() => true}
+        >
           <View style={styles.header}>
             <Text style={[styles.title, { color: theme.text }]}>
               {isNewKey ? 'Add Key' : 'Edit Key'}
@@ -199,7 +206,7 @@ export function ValueEditor({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

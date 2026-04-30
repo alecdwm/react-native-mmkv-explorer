@@ -83,6 +83,7 @@ export function MMKVExplorer({
   const handleAddKey = useCallback(() => {
     setSelectedKey(null);
     setSelectedEntry(null);
+    setParsedJson(null);
     setIsNewKey(true);
     setEditorVisible(true);
   }, []);
@@ -99,9 +100,44 @@ export function MMKVExplorer({
       if (!storage) return;
       setValue(storage, key, type, value);
       setEditorVisible(false);
+      setParsedJson(null);
       triggerRefresh();
     },
     [storage, triggerRefresh],
+  );
+
+  const handleSaveJsonProperty = useCallback(
+    (path: string[], value: unknown) => {
+      if (!storage || !selectedKey || !parsedJson) return;
+
+      const updated = JSON.parse(JSON.stringify(parsedJson));
+
+      // Navigate to the parent of the target property
+      let node: Record<string, unknown> | unknown[] = updated;
+      for (let i = 0; i < path.length - 1; i++) {
+        if (Array.isArray(node)) {
+          node = node[Number(path[i])] as Record<string, unknown> | unknown[];
+        } else {
+          node = node[path[i]] as Record<string, unknown> | unknown[];
+        }
+      }
+
+      // Set the value at the target key
+      const lastKey = path[path.length - 1];
+      if (Array.isArray(node)) {
+        node[Number(lastKey)] = value;
+      } else {
+        node[lastKey] = value;
+      }
+
+      const jsonString = JSON.stringify(updated);
+      setValue(storage, selectedKey, 'string', jsonString);
+
+      setParsedJson(updated);
+      setSelectedEntry({ key: selectedKey, type: 'string', value: jsonString });
+      triggerRefresh();
+    },
+    [storage, selectedKey, parsedJson, triggerRefresh],
   );
 
   const handleClearAll = useCallback(() => {
@@ -210,6 +246,7 @@ export function MMKVExplorer({
             theme={theme}
             onClose={() => setJsonViewerVisible(false)}
             onEdit={handleEditFromViewer}
+            onSaveProperty={handleSaveJsonProperty}
           />
         )}
 
@@ -220,6 +257,7 @@ export function MMKVExplorer({
           initialType={selectedEntry?.type ?? 'string'}
           initialValue={selectedEntry ? valueToString(selectedEntry) : ''}
           isNewKey={isNewKey}
+          editorMode={parsedJson !== null ? 'json' : 'plain'}
           theme={theme}
           onSave={handleSave}
           onCancel={() => setEditorVisible(false)}

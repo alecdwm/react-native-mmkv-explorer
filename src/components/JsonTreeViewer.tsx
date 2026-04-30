@@ -17,6 +17,7 @@ import {
   JSON_TYPE_LABELS,
 } from '../constants';
 import type { ThemeColors } from '../types';
+import { JsonPropertyEditor } from './JsonPropertyEditor';
 
 interface JsonTreeViewerProps {
   visible: boolean;
@@ -25,6 +26,7 @@ interface JsonTreeViewerProps {
   theme: ThemeColors;
   onClose: () => void;
   onEdit: () => void;
+  onSaveProperty?: (path: string[], value: unknown) => void;
 }
 
 interface JsonRow {
@@ -52,8 +54,10 @@ export function JsonTreeViewer({
   theme,
   onClose,
   onEdit,
+  onSaveProperty,
 }: JsonTreeViewerProps) {
   const [path, setPath] = useState<string[]>([]);
+  const [editingRow, setEditingRow] = useState<JsonRow | null>(null);
 
   const currentNode = useMemo(() => {
     let node: unknown = json;
@@ -95,6 +99,7 @@ export function JsonTreeViewer({
 
   const handleClose = useCallback(() => {
     setPath([]);
+    setEditingRow(null);
     onClose();
   }, [onClose]);
 
@@ -104,6 +109,20 @@ export function JsonTreeViewer({
   }, [onEdit]);
 
   const breadcrumbs = ['root', ...path];
+
+  const handleEditProperty = useCallback((item: JsonRow) => {
+    setEditingRow(item);
+  }, []);
+
+  const handleSaveEditedProperty = useCallback(
+    (value: unknown) => {
+      if (editingRow && onSaveProperty) {
+        onSaveProperty([...path, editingRow.key], value);
+      }
+      setEditingRow(null);
+    },
+    [editingRow, onSaveProperty, path],
+  );
 
   const renderRow = useCallback(
     ({ item }: { item: JsonRow }) => {
@@ -131,10 +150,18 @@ export function JsonTreeViewer({
             </Text>
           </View>
           {isDrillable && <Text style={[styles.chevron, { color: theme.textMuted }]}>›</Text>}
+          {!isDrillable && onSaveProperty && (
+            <TouchableOpacity
+              onPress={() => handleEditProperty(item)}
+              style={styles.editPropertyButton}
+            >
+              <Text style={[styles.editPropertyText, { color: theme.primary }]}>✎</Text>
+            </TouchableOpacity>
+          )}
         </TouchableOpacity>
       );
     },
-    [theme, handleRowPress],
+    [theme, handleRowPress, handleEditProperty, onSaveProperty],
   );
 
   const keyExtractor = useCallback((item: JsonRow) => item.key, []);
@@ -252,6 +279,16 @@ export function JsonTreeViewer({
           </View>
         </View>
       </Pressable>
+
+      {/* Inline Property Editor */}
+      <JsonPropertyEditor
+        visible={editingRow !== null}
+        propertyKey={editingRow?.key ?? ''}
+        initialValue={editingRow?.value}
+        theme={theme}
+        onSave={handleSaveEditedProperty}
+        onCancel={() => setEditingRow(null)}
+      />
     </Modal>
   );
 }
@@ -345,6 +382,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  editPropertyButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 8,
+  },
+  editPropertyText: {
+    fontSize: 16,
   },
   primitiveContainer: {
     marginHorizontal: 16,

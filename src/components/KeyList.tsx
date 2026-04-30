@@ -22,17 +22,18 @@ export function KeyList({
   onSelectKey,
   onDeleteKey,
   onAddKey,
-  refreshTrigger: _refreshTrigger,
+  refreshTrigger,
 }: KeyListProps) {
   const { filteredKeys, searchQuery, setSearchQuery, refresh, totalCount, filteredCount } =
     useKeyList(storage);
 
   const { resolve, invalidateAll } = useValueResolver(storage);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshTrigger is an intentional dependency to force re-fetching when values change
   useEffect(() => {
     refresh();
     invalidateAll();
-  }, [refresh, invalidateAll]);
+  }, [refresh, invalidateAll, refreshTrigger]);
 
   const renderItem = useCallback(
     ({ item: key }: { item: string }) => {

@@ -19,6 +19,7 @@ interface ValueEditorProps {
   initialType?: MMKVValueType;
   initialValue?: string;
   isNewKey: boolean;
+  editorMode?: 'plain' | 'json';
   theme: ThemeColors;
   onSave: (key: string, type: MMKVValueType, value: string) => void;
   onCancel: () => void;
@@ -32,6 +33,7 @@ export function ValueEditor({
   initialType = 'string',
   initialValue = '',
   isNewKey,
+  editorMode = 'plain',
   theme,
   onSave,
   onCancel,
@@ -41,19 +43,37 @@ export function ValueEditor({
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
 
+  const isJsonMode = editorMode === 'json';
+
   useEffect(() => {
     if (visible) {
       setKey(initialKey);
-      setType(initialType);
-      setValue(initialValue);
+      setType(isJsonMode ? 'string' : initialType);
+      if (isJsonMode) {
+        try {
+          setValue(JSON.stringify(JSON.parse(initialValue), null, 2));
+        } catch {
+          setValue(initialValue);
+        }
+      } else {
+        setValue(initialValue);
+      }
       setError(null);
     }
-  }, [visible, initialKey, initialType, initialValue]);
+  }, [visible, initialKey, initialType, initialValue, isJsonMode]);
 
   const validate = useCallback((): boolean => {
     if (!key.trim()) {
       setError('Key cannot be empty');
       return false;
+    }
+    if (isJsonMode) {
+      try {
+        JSON.parse(value);
+      } catch {
+        setError('Invalid JSON');
+        return false;
+      }
     }
     if (type === 'number' && Number.isNaN(Number(value))) {
       setError(`"${value}" is not a valid number`);
@@ -69,13 +89,21 @@ export function ValueEditor({
     }
     setError(null);
     return true;
-  }, [key, type, value]);
+  }, [key, type, value, isJsonMode]);
 
   const handleSave = useCallback(() => {
     if (validate()) {
-      onSave(key, type, type === 'boolean' ? value : value);
+      let saveValue = value;
+      if (isJsonMode) {
+        try {
+          saveValue = JSON.stringify(JSON.parse(value));
+        } catch {
+          // validate() should have caught this
+        }
+      }
+      onSave(key, type, saveValue);
     }
-  }, [key, type, value, validate, onSave]);
+  }, [key, type, value, validate, onSave, isJsonMode]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
@@ -112,42 +140,47 @@ export function ValueEditor({
               editable={isNewKey}
               autoCapitalize="none"
               autoCorrect={false}
+              spellCheck={false}
               placeholder="key.name"
               placeholderTextColor={theme.textMuted}
             />
 
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Type</Text>
-            <View style={styles.typeRow}>
-              {VALUE_TYPES.map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  style={[
-                    styles.typeButton,
-                    {
-                      backgroundColor: type === t ? getBadgeColor(t, theme) : theme.background,
-                      borderColor: type === t ? getBadgeColor(t, theme) : theme.border,
-                    },
-                  ]}
-                  onPress={() => {
-                    setType(t);
-                    if (t === 'boolean' && value !== 'true' && value !== 'false') {
-                      setValue('false');
-                    }
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.typeButtonText,
-                      {
-                        color: type === t ? theme.badgeText : theme.text,
-                      },
-                    ]}
-                  >
-                    {TYPE_LABELS[t]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {!isJsonMode && (
+              <>
+                <Text style={[styles.label, { color: theme.textSecondary }]}>Type</Text>
+                <View style={styles.typeRow}>
+                  {VALUE_TYPES.map((t) => (
+                    <TouchableOpacity
+                      key={t}
+                      style={[
+                        styles.typeButton,
+                        {
+                          backgroundColor: type === t ? getBadgeColor(t, theme) : theme.background,
+                          borderColor: type === t ? getBadgeColor(t, theme) : theme.border,
+                        },
+                      ]}
+                      onPress={() => {
+                        setType(t);
+                        if (t === 'boolean' && value !== 'true' && value !== 'false') {
+                          setValue('false');
+                        }
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.typeButtonText,
+                          {
+                            color: type === t ? theme.badgeText : theme.text,
+                          },
+                        ]}
+                      >
+                        {TYPE_LABELS[t]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
 
             <Text style={[styles.label, { color: theme.textSecondary }]}>Value</Text>
             {type === 'boolean' ? (
@@ -170,19 +203,27 @@ export function ValueEditor({
                     borderColor: theme.border,
                     backgroundColor: theme.background,
                   },
+                  isJsonMode && styles.jsonValueInput,
                 ]}
                 value={value}
                 onChangeText={(v) => {
                   setValue(v);
                   setError(null);
                 }}
-                multiline={type === 'string' || type === 'binary'}
-                numberOfLines={type === 'string' || type === 'binary' ? 4 : 1}
+                multiline={isJsonMode || type === 'string' || type === 'binary'}
+                numberOfLines={isJsonMode ? 12 : type === 'string' || type === 'binary' ? 4 : 1}
                 autoCapitalize="none"
                 autoCorrect={false}
+                spellCheck={false}
                 keyboardType={type === 'number' ? 'numeric' : 'default'}
                 placeholder={
-                  type === 'number' ? '0' : type === 'binary' ? 'base64 encoded…' : 'value'
+                  isJsonMode
+                    ? '{\n  "key": "value"\n}'
+                    : type === 'number'
+                      ? '0'
+                      : type === 'binary'
+                        ? 'base64 encoded…'
+                        : 'value'
                 }
                 placeholderTextColor={theme.textMuted}
               />
@@ -284,6 +325,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     textAlignVertical: 'top',
+  },
+  jsonValueInput: {
+    fontFamily: 'monospace',
+    minHeight: 200,
   },
   error: {
     fontSize: 12,

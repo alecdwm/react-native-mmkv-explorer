@@ -28,6 +28,14 @@
     "debug",
     "explorer"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alecdwm/react-native-mmkv-explorer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alecdwm/react-native-mmkv-explorer/issues"
+  },
+  "homepage": "https://github.com/alecdwm/react-native-mmkv-explorer#readme",
   "license": "MIT",
   "peerDependencies": {
     "react": ">=17.0.0",

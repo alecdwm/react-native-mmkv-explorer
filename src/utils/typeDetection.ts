@@ -2,9 +2,10 @@ import type { MMKV } from 'react-native-mmkv';
 import type { MMKVEntry, MMKVValueType } from '../types';
 
 export function resolveValue(storage: MMKV, key: string): MMKVEntry | undefined {
-  const boolVal = storage.getBoolean(key);
-  if (boolVal !== undefined) {
-    return { key, type: 'boolean', value: boolVal };
+  // getString first: getBoolean coerces non-empty strings to true
+  const strVal = storage.getString(key);
+  if (strVal !== undefined) {
+    return { key, type: 'string', value: strVal };
   }
 
   const numVal = storage.getNumber(key);
@@ -12,9 +13,9 @@ export function resolveValue(storage: MMKV, key: string): MMKVEntry | undefined 
     return { key, type: 'number', value: numVal };
   }
 
-  const strVal = storage.getString(key);
-  if (strVal !== undefined) {
-    return { key, type: 'string', value: strVal };
+  const boolVal = storage.getBoolean(key);
+  if (boolVal !== undefined) {
+    return { key, type: 'boolean', value: boolVal };
   }
 
   const bufVal = storage.getBuffer(key);

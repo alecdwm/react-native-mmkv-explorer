@@ -49,4 +49,4 @@ jobs:
       - if: steps.version-check.outputs.skip == 'false'
         run: pnpm build
       - if: steps.version-check.outputs.skip == 'false'
-        run: npm publish --provenance --access public
+        run: npx npm@latest publish --provenance --access public

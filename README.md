@@ -59,6 +59,44 @@ function App() {
 }
 ```
 
+## Dev Menu Integration
+
+Instead of adding a button to your UI, you can launch the explorer from React Native's built-in dev menu or [Expo Dev Menu](https://docs.expo.dev/develop/development-builds/development-workflows/#expo-dev-menu):
+
+```tsx
+import { useEffect } from 'react';
+import { DevSettings } from 'react-native';
+import { registerDevMenuItems } from 'expo-dev-menu';
+import { MMKVExplorer, useMmkvExplorerVisible, showMmkvExplorer, hideMmkvExplorer } from 'react-native-mmkv-explorer';
+
+export function DevMmkvExplorer() {
+  const visible = useMmkvExplorerVisible();
+
+  useEffect(() => {
+    if (!__DEV__) return;
+
+    // React Native dev menu (shake or Cmd+D)
+    DevSettings.addMenuItem('MMKV Explorer', showMmkvExplorer);
+
+    // Expo Dev Menu (if using expo-dev-client)
+    registerDevMenuItems([{ name: 'MMKV Explorer', callback: showMmkvExplorer }]);
+  }, []);
+
+  return (
+    <MMKVExplorer
+      instances={mmkvInstances}
+      visible={visible}
+      onClose={hideMmkvExplorer}
+    />
+  );
+}
+```
+
+You can use either or both depending on your setup:
+
+- **`DevSettings.addMenuItem`** — adds an entry to the standard React Native dev menu (shake gesture or ⌘D)
+- **`registerDevMenuItems`** — adds an entry to the Expo Dev Menu (requires `expo-dev-client`)
+
 ## Props
 
 | Prop | Type | Required | Description |

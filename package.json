@@ -1,6 +1,6 @@
 {
   "name": "react-native-mmkv-explorer",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "packageManager": "pnpm@10.33.1",
   "description": "An interactive in-app dev tool for exploring react-native-mmkv storage",
   "main": "lib/index.js",

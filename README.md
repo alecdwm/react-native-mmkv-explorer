@@ -188,7 +188,7 @@ A preview showing the number of new, updated, and unchanged keys is displayed be
 
 ## Type Detection
 
-MMKV does not expose value types directly. The explorer detects types by trying each getter in order: `getBoolean`, `getNumber`, `getString`, `getBuffer`. The first to return a non-undefined value determines the type. When editing, you can explicitly select the type.
+MMKV does not expose value types directly. The explorer detects types by trying each getter in order: `getString`, `getNumber`, `getBoolean`, `getBuffer`. The first to return a non-undefined value determines the type. When editing, you can explicitly select the type.
 
 ## License
 

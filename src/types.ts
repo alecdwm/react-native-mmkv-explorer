@@ -45,6 +45,7 @@ export interface ThemeColors {
   badgeNumber: string;
   badgeBoolean: string;
   badgeBinary: string;
+  badgeJson: string;
   badgeText: string;
   modalOverlay: string;
 }

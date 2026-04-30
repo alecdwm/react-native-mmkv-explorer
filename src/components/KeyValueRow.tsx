@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getBadgeColor, TYPE_LABELS } from '../constants';
+import { getBadgeColor, getJsonValuePreview, TYPE_LABELS } from '../constants';
 import type { MMKVEntry, ThemeColors } from '../types';
-import { truncateValue } from '../utils/typeDetection';
+import { truncateValue, tryParseJson, valueToString } from '../utils/typeDetection';
 
 interface KeyValueRowProps {
   entry: MMKVEntry | undefined;
@@ -13,13 +13,32 @@ interface KeyValueRowProps {
 }
 
 export function KeyValueRow({ entry, keyName, theme, onPress, onLongPress }: KeyValueRowProps) {
-  const preview = useMemo(() => {
-    if (!entry) return '…';
-    return truncateValue(entry);
-  }, [entry]);
+  const { preview, badgeColor, typeLabel } = useMemo(() => {
+    if (!entry) {
+      return {
+        preview: '…',
+        badgeColor: theme.textMuted,
+        typeLabel: '?',
+      };
+    }
 
-  const badgeColor = entry ? getBadgeColor(entry.type, theme) : theme.textMuted;
-  const typeLabel = entry ? TYPE_LABELS[entry.type] : '?';
+    if (entry.type === 'string') {
+      const parsed = tryParseJson(valueToString(entry));
+      if (parsed !== null) {
+        return {
+          preview: getJsonValuePreview(parsed),
+          badgeColor: theme.badgeJson,
+          typeLabel: 'JSON',
+        };
+      }
+    }
+
+    return {
+      preview: truncateValue(entry),
+      badgeColor: getBadgeColor(entry.type, theme),
+      typeLabel: TYPE_LABELS[entry.type],
+    };
+  }, [entry, theme]);
 
   return (
     <TouchableOpacity

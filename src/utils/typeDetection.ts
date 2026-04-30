@@ -63,6 +63,20 @@ export function truncateValue(entry: MMKVEntry, maxLength = 80): string {
   return `${str.slice(0, maxLength)}…`;
 }
 
+export function tryParseJson(value: string): Record<string, unknown> | unknown[] | null {
+  const trimmed = value.trimStart();
+  if (trimmed[0] !== '{' && trimmed[0] !== '[') return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (typeof parsed === 'object' && parsed !== null) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function uint8ArrayToBase64(bytes: Uint8Array): string {
   let binary = '';
   for (let i = 0; i < bytes.length; i++) {

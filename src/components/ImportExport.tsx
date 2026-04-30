@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import {
   Clipboard,
   Modal,
+  Pressable,
   ScrollView,
   Share,
   StyleSheet,
@@ -103,9 +104,15 @@ export function ImportExport({
   }, [onClose]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}>
-        <View style={[styles.sheet, { backgroundColor: theme.surface }]}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
+      <Pressable
+        style={[styles.overlay, { backgroundColor: theme.modalOverlay }]}
+        onPress={handleClose}
+      >
+        <View
+          style={[styles.sheet, { backgroundColor: theme.surface }]}
+          onStartShouldSetResponder={() => true}
+        >
           <View style={styles.header}>
             <Text style={[styles.title, { color: theme.text }]}>Import / Export</Text>
             <TouchableOpacity onPress={handleClose}>
@@ -274,7 +281,7 @@ export function ImportExport({
             {error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
           </ScrollView>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

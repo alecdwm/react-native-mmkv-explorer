@@ -3,12 +3,13 @@ import { Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'r
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { ImportExport } from './components/ImportExport';
 import { InstancePicker } from './components/InstancePicker';
+import { JsonTreeViewer } from './components/JsonTreeViewer';
 import { KeyList } from './components/KeyList';
 import { ValueEditor } from './components/ValueEditor';
 import { ValueViewer } from './components/ValueViewer';
 import type { InstanceDescriptor, MMKVEntry, MMKVValueType, ThemeOverrides } from './types';
 import { mergeTheme } from './utils/theme';
-import { resolveValue, setValue, valueToString } from './utils/typeDetection';
+import { resolveValue, setValue, tryParseJson, valueToString } from './utils/typeDetection';
 
 export interface MMKVExplorerProps {
   instances: InstanceDescriptor[];
@@ -29,11 +30,14 @@ export function MMKVExplorer({
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<MMKVEntry | null>(null);
   const [viewerVisible, setViewerVisible] = useState(false);
+  const [jsonViewerVisible, setJsonViewerVisible] = useState(false);
+  const [parsedJson, setParsedJson] = useState<Record<string, unknown> | unknown[] | null>(null);
   const [editorVisible, setEditorVisible] = useState(false);
   const [isNewKey, setIsNewKey] = useState(false);
   const [importExportVisible, setImportExportVisible] = useState(false);
   const [deleteConfirmKey, setDeleteConfirmKey] = useState<string | null>(null);
   const [clearAllConfirmVisible, setClearAllConfirmVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const activeInstance = instances[activeInstanceIndex] ?? null;
@@ -49,6 +53,17 @@ export function MMKVExplorer({
       const entry = resolveValue(storage, key);
       setSelectedKey(key);
       setSelectedEntry(entry ?? null);
+
+      if (entry?.type === 'string') {
+        const json = tryParseJson(valueToString(entry));
+        if (json !== null) {
+          setParsedJson(json);
+          setJsonViewerVisible(true);
+          return;
+        }
+      }
+
+      setParsedJson(null);
       setViewerVisible(true);
     },
     [storage],
@@ -74,6 +89,7 @@ export function MMKVExplorer({
 
   const handleEditFromViewer = useCallback(() => {
     setViewerVisible(false);
+    setJsonViewerVisible(false);
     setIsNewKey(false);
     setEditorVisible(true);
   }, []);
@@ -113,23 +129,50 @@ export function MMKVExplorer({
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>MMKV Explorer</Text>
           <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => setImportExportVisible(true)}
-            >
-              <Text style={[styles.headerButtonText, { color: theme.primary }]}>⇄</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => setClearAllConfirmVisible(true)}
-            >
-              <Text style={[styles.headerButtonText, { color: theme.danger }]}>🗑</Text>
+            <TouchableOpacity style={styles.headerButton} onPress={() => setMenuVisible(true)}>
+              <Text style={[styles.headerButtonText, { color: theme.textSecondary }]}>☰</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerButton} onPress={onClose}>
               <Text style={[styles.headerButtonText, { color: theme.textSecondary }]}>✕</Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Dropdown Menu */}
+        {menuVisible && (
+          <View style={styles.menuOverlay}>
+            <TouchableOpacity
+              style={styles.menuBackdrop}
+              activeOpacity={1}
+              onPress={() => setMenuVisible(false)}
+            />
+            <View
+              style={[
+                styles.menuContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
+              <TouchableOpacity
+                style={[styles.menuItem, { borderBottomColor: theme.border }]}
+                onPress={() => {
+                  setMenuVisible(false);
+                  setImportExportVisible(true);
+                }}
+              >
+                <Text style={[styles.menuItemText, { color: theme.text }]}>Import / Export</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  setClearAllConfirmVisible(true);
+                }}
+              >
+                <Text style={[styles.menuItemText, { color: theme.danger }]}>Clear All Keys</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Instance Picker */}
         <InstancePicker
@@ -157,6 +200,18 @@ export function MMKVExplorer({
           onClose={() => setViewerVisible(false)}
           onEdit={handleEditFromViewer}
         />
+
+        {/* JSON Tree Viewer */}
+        {parsedJson !== null && (
+          <JsonTreeViewer
+            visible={jsonViewerVisible}
+            json={parsedJson}
+            mmkvKey={selectedKey ?? ''}
+            theme={theme}
+            onClose={() => setJsonViewerVisible(false)}
+            onEdit={handleEditFromViewer}
+          />
+        )}
 
         {/* Value Editor */}
         <ValueEditor
@@ -237,5 +292,42 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     fontSize: 18,
+  },
+  menuOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+  },
+  menuBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 56,
+    right: 16,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    minWidth: 180,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  menuItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'transparent',
+  },
+  menuItemText: {
+    fontSize: 16,
   },
 });
